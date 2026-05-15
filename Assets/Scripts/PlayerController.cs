@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
 
     public bool gameOver = false;
     public float moveSpeed = 10f; 
-    public float xBound = 3f;
+    public float xBound = 0.5f;
 
     void Awake()
     {
