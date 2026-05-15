@@ -19,6 +19,8 @@ public class PlayerController : MonoBehaviour
     private AudioSource playerAudio;
 
     public bool gameOver = false;
+    public float moveSpeed = 10f; 
+    public float xBound = 3f;
 
     void Awake()
     {
@@ -47,6 +49,25 @@ public class PlayerController : MonoBehaviour
             playerAnim.SetTrigger("Jump_trig");
             dirtParticle.Stop();
             playerAudio.PlayOneShot(jumpSfx);
+        }
+        if (!gameOver)
+        {
+            float horizontalInput = 0;
+            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) horizontalInput = -1;
+            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) horizontalInput = 1;
+
+            // สั่งให้ตัวละครขยับ (ถ้าเกมคุณใช้แกน Z เป็นการเดินซ้ายขวา ให้เปลี่ยน Vector3.right เป็น Vector3.forward ครับ)
+            transform.Translate(Vector3.right * horizontalInput * moveSpeed * Time.deltaTime);
+
+            // 3. ล็อกให้อยู่ในถนน ไม่ให้เดินทะลุขอบ
+            if (transform.position.x < -xBound)
+            {
+                transform.position = new Vector3(-xBound, transform.position.y, transform.position.z);
+            }
+            if (transform.position.x > xBound)
+            {
+                transform.position = new Vector3(xBound, transform.position.y, transform.position.z);
+            }
         }
     }
 
