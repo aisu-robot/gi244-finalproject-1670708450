@@ -18,11 +18,13 @@ public class SpawnManager : MonoBehaviour
     void Start()
     {
         playerController = GameObject.Find("Player").GetComponent<PlayerController>();
+        // ลบ InvokeRepeating เดิมทิ้งไปครับ
+    }
 
-        // สั่งให้เริ่มเสกสิ่งกีดขวาง
+    // สร้างฟังก์ชันใหม่นี้เพื่อให้ GameManager มาสั่งเริ่มเสก
+    public void StartSpawning()
+    {
         InvokeRepeating(nameof(SpawnObstacle), startDelay, repeatRate);
-
-        // สั่งให้เริ่มเสกกล่องไอเทม (ดีเลย์ตอนเริ่มเกมนิดหน่อยให้ผู้เล่นตั้งตัว)
         InvokeRepeating(nameof(SpawnItemCube), startDelay + 2f, itemSpawnRate);
     }
 

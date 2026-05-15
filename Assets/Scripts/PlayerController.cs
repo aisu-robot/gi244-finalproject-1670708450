@@ -111,6 +111,11 @@ public class PlayerController : MonoBehaviour
         {
             Debug.Log("Game Over!");
             gameOver = true;
+
+            // --- เรียก GameManager เพื่อเปิดหน้าต่าง Game Over ---
+            GameObject.Find("GameManager").GetComponent<GameManager>().ShowGameOver();
+
+            // --- เล่นเอฟเฟกต์ตายแบบเดิม ---
             playerAnim.SetBool("Death_b", true);
             playerAnim.SetInteger("DeathType_int", 1);
             explosionParticle.Play();
