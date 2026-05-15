@@ -1,15 +1,20 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro; // <--- เพิ่มบรรทัดนี้เพื่อเรียกใช้ระบบ TextMeshPro
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("UI Score")]
+    public TextMeshProUGUI scoreText; // ช่องสำหรับใส่ UI ข้อความ
+    public int score = 0;             // ตัวแปรเก็บคะแนนปัจจุบัน
+
     [Header("Movement Settings")]
-    public float moveSpeed = 10f; // ความเร็วเดิน W A S D
-    public float xBoundary = 2f;  // ระยะขอบถนนซ้ายขวา (กันเดินตกขอบ)
+    public float moveSpeed = 10f;
+    public float xBoundary = 5f;
 
     [Header("Jump Settings")]
     public float jumpForce = 10f;
-    public float doubleJumpForce = 8f; // แรงกระโดดครั้งที่ 2
+    public float doubleJumpForce = 8f;
     public float gravityModifier = 2f;
 
     [Header("Particles & Audio")]
@@ -38,11 +43,14 @@ public class PlayerController : MonoBehaviour
     {
         Physics.gravity *= gravityModifier;
         gameOver = false;
+
+        // รีเซ็ตคะแนนตอนเริ่มเกม
+        score = 0;
+        UpdateScoreText();
     }
 
     void Update()
     {
-        // ถ้ายอมแพ้/ตายแล้ว ให้คืนค่าเวลาเป็นปกติและหยุดทำงานด้านล่างทั้งหมด
         if (gameOver)
         {
             Time.timeScale = 1f;
@@ -50,33 +58,19 @@ public class PlayerController : MonoBehaviour
         }
 
         // ---------------- 1. ระบบเดิน (W A S D) ----------------
-        float horizontalInput = 0; // สำหรับรับค่า A, D (ซ้าย-ขวา)
-        float verticalInput = 0;   // สำหรับรับค่า W, S (หน้า-หลัง)
+        float horizontalInput = 0;
+        float verticalInput = 0;
 
-        // เช็คปุ่ม ซ้าย-ขวา
         if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) horizontalInput = -1;
         if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) horizontalInput = 1;
-
-        // เช็คปุ่ม หน้า-หลัง
         if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) verticalInput = 1;
         if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) verticalInput = -1;
 
-        // สั่งขยับ ซ้าย-ขวา (แกน X)
         transform.Translate(Vector3.right * horizontalInput * moveSpeed * Time.deltaTime);
-
-        // สั่งขยับ หน้า-หลัง (แกน Z)
         transform.Translate(Vector3.forward * verticalInput * moveSpeed * Time.deltaTime);
 
-        // ---------------- การล็อกขอบเขต (ไม่ให้เดินตกโลก) ----------------
-        // ล็อกแกนซ้าย-ขวา (แกน X)
-        if (transform.position.z < -xBoundary)
-        {
-            transform.position = new Vector3(transform.position.x, transform.position.y, -xBoundary);
-        }
-        if (transform.position.z > xBoundary)
-        {
-            transform.position = new Vector3(transform.position.x, transform.position.y, xBoundary);
-        }
+        if (transform.position.z < -xBoundary) transform.position = new Vector3(transform.position.x, transform.position.y, -xBoundary);
+        if (transform.position.z > xBoundary) transform.position = new Vector3(transform.position.x, transform.position.y, xBoundary);
 
         // ---------------- 2. ระบบกระโดด และ Double Jump ----------------
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
@@ -92,7 +86,6 @@ public class PlayerController : MonoBehaviour
             }
             else if (!doubleJumpUsed)
             {
-                // รีเซ็ตความเร็วตอนตกลงมาก่อน เพื่อให้กระโดดครั้งที่สองเด้งขึ้นเสมอ
                 rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
                 rb.AddForce(doubleJumpForce * Vector3.up, ForceMode.Impulse);
                 doubleJumpUsed = true;
@@ -101,16 +94,9 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // ---------------- 3. ระบบ Dash (เร่งเวลาเกม) ----------------
-        // กดปุ่ม Shift ซ้ายค้างไว้เพื่อเร่งเวลา
-        if (Keyboard.current.leftShiftKey.isPressed)
-        {
-            Time.timeScale = 1.5f; // ความเร็ว 1.5 เท่า (ปรับเลขให้เร็วขึ้นได้ตามต้องการ)
-        }
-        else
-        {
-            Time.timeScale = 1f; // ปล่อยปุ่มแล้วกลับมาความเร็วปกติ
-        }
+        // ---------------- 3. ระบบเร่งเวลาเกม ----------------
+        if (Keyboard.current.leftShiftKey.isPressed) Time.timeScale = 1.5f;
+        else Time.timeScale = 1f;
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -130,6 +116,22 @@ public class PlayerController : MonoBehaviour
             explosionParticle.Play();
             dirtParticle.Stop();
             playerAudio.PlayOneShot(crashSfx);
+        }
+    }
+
+    // ---------------- ฟังก์ชันจัดการคะแนน ----------------
+    public void AddScore(int points)
+    {
+        score += points;
+        UpdateScoreText(); // สั่งให้อัปเดตข้อความบนจอ
+    }
+
+    private void UpdateScoreText()
+    {
+        // ตรวจสอบว่ามี UI เชื่อมอยู่ไหม ป้องกันการ Error
+        if (scoreText != null)
+        {
+            scoreText.text = "Score: " + score;
         }
     }
 }

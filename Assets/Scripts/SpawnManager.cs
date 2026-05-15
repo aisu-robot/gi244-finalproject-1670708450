@@ -2,14 +2,16 @@ using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
 {
+    [Header("Prefabs")]
     public GameObject obstaclePrefab;
+    public GameObject itemCubePrefab; // เพิ่มช่องสำหรับใส่ Prefab กล่องไอเทม
 
-    // 1. เพิ่มระยะเกิดให้ไกลขึ้น (เปลี่ยนเลขตรงนี้ได้เลย)
+    [Header("Spawn Settings")]
     public float spawnDistance = 70f;
-
-    // 2. ปรับเวลาให้รัวขึ้น (ค่ายิ่งน้อย วัตถุยิ่งเกิดเร็วขึ้น)
     public float startDelay = 2f;
-    public float repeatRate = 0.3f; // เปลี่ยนจาก 2 เป็น 0.8 วินาที
+    public float repeatRate = 0.3f;
+
+    public float itemSpawnRate = 10f; // ตั้งเวลาให้กล่องไอเทมเกิด (เช่น สุ่มเกิดทุก 10 วินาที)
 
     private PlayerController playerController;
 
@@ -17,33 +19,43 @@ public class SpawnManager : MonoBehaviour
     {
         playerController = GameObject.Find("Player").GetComponent<PlayerController>();
 
-        // สั่งให้ทำซ้ำตามเวลาที่ตั้งไว้
+        // สั่งให้เริ่มเสกสิ่งกีดขวาง
         InvokeRepeating(nameof(SpawnObstacle), startDelay, repeatRate);
+
+        // สั่งให้เริ่มเสกกล่องไอเทม (ดีเลย์ตอนเริ่มเกมนิดหน่อยให้ผู้เล่นตั้งตัว)
+        InvokeRepeating(nameof(SpawnItemCube), startDelay + 2f, itemSpawnRate);
     }
 
     void SpawnObstacle()
     {
         if (playerController.gameOver == false)
         {
-            // 3. สุ่มจำนวนที่จะเกิดในรอบนี้ (สุ่มเลข 1 ถึง 2)
-            // หมายเหตุ: Random.Range(1, 3) หมายถึงจะสุ่มได้เลข 1 หรือ 2 (ไม่รวม 3)
             int spawnCount = Random.Range(7, 17);
 
-            // ใช้ loop สั่งเสกวัตถุตามจำนวนที่สุ่มได้ข้างบน
             for (int i = 0; i < spawnCount; i++)
             {
-                // สุ่มตำแหน่งซ้าย-ขวา (แกน Z)
                 float randomZ = Random.Range(-10f, 10f);
-
-                // สร้างตำแหน่งจุดเกิดใหม่ โดยอิงจากระยะ spawnDistance
                 Vector3 randomSpawnPos = new Vector3(spawnDistance, 0, randomZ);
-
-                // สั่งเสกวัตถุ
                 Instantiate(obstaclePrefab, randomSpawnPos, obstaclePrefab.transform.rotation);
             }
         }
     }
-    // ฟังก์ชันนี้จะถูกเรียกจาก ItemCube
+
+    // ฟังก์ชันใหม่: สำหรับเสกกล่องไอเทม
+    void SpawnItemCube()
+    {
+        if (playerController.gameOver == false)
+        {
+            // สุ่มตำแหน่งซ้าย-ขวา
+            float randomZ = Random.Range(-5f, 5f);
+
+            // เปลี่ยน 1.5f เป็น 4f เพื่อให้กล่องลอยสูงขึ้น (ปรับเลข 4f ได้ตามใจชอบเลยครับ)
+            Vector3 randomSpawnPos = new Vector3(spawnDistance, 4f, randomZ);
+
+            Instantiate(itemCubePrefab, randomSpawnPos, itemCubePrefab.transform.rotation);
+        }
+    }
+
     public void StartCrazyMode(float duration)
     {
         StartCoroutine(CrazyModeRoutine(duration));
@@ -51,17 +63,11 @@ public class SpawnManager : MonoBehaviour
 
     private System.Collections.IEnumerator CrazyModeRoutine(float duration)
     {
-        // 1. ยกเลิกระบบการเสกแบบปกติออกไปก่อน
         CancelInvoke(nameof(SpawnObstacle));
-
-        // 2. เสกรัวๆ! (ตัวเลข 0.15f คือความถี่ ยิ่งน้อยยิ่งออกมาถี่และประหลาดมาก)
-        InvokeRepeating(nameof(SpawnObstacle), 0f, 0.15f);
-
-        // 3. รอจนหมดเวลาคำสาป
+        InvokeRepeating(nameof(SpawnObstacle), 0f, 0.35f);
         yield return new WaitForSeconds(duration);
-
-        // 4. ยกเลิกความถี่แบบคลั่ง แล้วตั้งค่ากลับมาเสกตามเวลาปกติเหมือนตอนเริ่มเกม
         CancelInvoke(nameof(SpawnObstacle));
+
         if (playerController.gameOver == false)
         {
             InvokeRepeating(nameof(SpawnObstacle), startDelay, repeatRate);
