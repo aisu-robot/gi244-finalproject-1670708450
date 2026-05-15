@@ -43,4 +43,28 @@ public class SpawnManager : MonoBehaviour
             }
         }
     }
+    // ฟังก์ชันนี้จะถูกเรียกจาก ItemCube
+    public void StartCrazyMode(float duration)
+    {
+        StartCoroutine(CrazyModeRoutine(duration));
+    }
+
+    private System.Collections.IEnumerator CrazyModeRoutine(float duration)
+    {
+        // 1. ยกเลิกระบบการเสกแบบปกติออกไปก่อน
+        CancelInvoke(nameof(SpawnObstacle));
+
+        // 2. เสกรัวๆ! (ตัวเลข 0.15f คือความถี่ ยิ่งน้อยยิ่งออกมาถี่และประหลาดมาก)
+        InvokeRepeating(nameof(SpawnObstacle), 0f, 0.15f);
+
+        // 3. รอจนหมดเวลาคำสาป
+        yield return new WaitForSeconds(duration);
+
+        // 4. ยกเลิกความถี่แบบคลั่ง แล้วตั้งค่ากลับมาเสกตามเวลาปกติเหมือนตอนเริ่มเกม
+        CancelInvoke(nameof(SpawnObstacle));
+        if (playerController.gameOver == false)
+        {
+            InvokeRepeating(nameof(SpawnObstacle), startDelay, repeatRate);
+        }
+    }
 }

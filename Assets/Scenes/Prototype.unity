@@ -149,7 +149,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   obstaclePrefab: {fileID: 5842114324701935107, guid: a0f4f1964968e794793346c5e8a07472, type: 3}
-  spawnPos: {x: 25, y: 0, z: 0}
+  spawnDistance: 35
   startDelay: 2
   repeatRate: 2
 --- !u!4 &11781320
@@ -416,6 +416,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 100046, guid: f8abbdd178867d2419ba9feb6ff2cba0, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 400046, guid: f8abbdd178867d2419ba9feb6ff2cba0, type: 3}
       propertyPath: m_LocalPosition.x
       value: 3
@@ -496,7 +500,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87059482b0c430644882ce49333b5982, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 10
+  xBoundary: 5
   jumpForce: 10
+  doubleJumpForce: 8
   gravityModifier: 2
   explosionParticle: {fileID: 810715825}
   dirtParticle: {fileID: 1120688231}
